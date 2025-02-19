@@ -42,7 +42,7 @@ model User {
   email           String   @unique @default("")
   password        String   @default("")
   profile_picture String   @default("")
-  Role            Role     @default(CASHIER)
+  role            Role     @default(CASHIER)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   orderDetail     Order[]
@@ -65,12 +65,14 @@ model Order {
   id             Int         @id @default(autoincrement())
   uuid           String      @default("")
   customer       String      @default("")
-  table_number   String      @default("")
+  table_number   Int         @default(0)
   total_price    Int         @default(0)
   payment_method Payment     @default(CASH)
   idUser         Int
   status         Status      @default(NEW)
   User           User?       @relation(fields: [UserID], references: [id])
+  createdAt      DateTime    @default(now())
+  updateAt       DateTime    @default(now()) @updatedAt
   UserID         Int?
   OrderList      OrderList[]
 }

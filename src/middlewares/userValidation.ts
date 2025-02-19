@@ -11,7 +11,7 @@ const addDataSchema = Joi.object({
     name: Joi.string().required(),
     email: Joi.string().required(),
     password: Joi.string().min(3).required(),
-    role: Joi.string().valid('CASHIER', 'MANAGER',).required(), 
+    role: Joi.string().valid('CASHIER', 'MANAGER').required(), 
     profile_picture: Joi.allow().optional() 
 })
 
@@ -30,7 +30,7 @@ export const verifyAuthentication = (
 ) => {
     const {error} = authSchema.validate(request.body, {abortEarly: false});
     if(error) {
-        return response.status(400).json({
+        return response.status(200).json({
             status: false,
             message: error.details.map((it) => it.message).join(),
         })
@@ -43,7 +43,6 @@ export const verifyAddUser = (
     response: Response,
     next: NextFunction
 ) => {
-    //beh
     const {error} = addDataSchema.validate(request.body, {abortEarly: false});
     if(error) {
         return response.status(400).json({
@@ -58,7 +57,6 @@ export const verifyEditUser = (
     response: Response,
     next: NextFunction
 ) => {
-    //beh
     const {error} = editDataSchema.validate(request.body, {abortEarly: false});
     if(error) {
         return response.status(400).json({

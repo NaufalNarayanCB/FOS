@@ -1,15 +1,17 @@
 import express from 'express'
 import cors from 'cors'
 import MenuRoute from './routes/menuRoute'
-import userRoutes from './routes/userRoutes'
+import UserRoute from './routes/userRoutes'
+import OrderRoute from './routes/orderRoutes'
 
 const PORT: number = 8000
 const app = express()
 app.use(cors())
 
-app.use('/menu', MenuRoute);
-app.use("/user", userRoutes)
+app.use('/menu', MenuRoute)
+app.use('/user', UserRoute)
+app.use(`/order`, OrderRoute)
 
-app.listen(PORT), () => {
-    console.log(`[server]: Server is running at https:localhost: $(PORT)`)
-}
+app.listen(PORT, () => {
+    console.log(`[server]: Server is running at http://localhost:${PORT}`) 
+})

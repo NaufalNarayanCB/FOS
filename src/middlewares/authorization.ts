@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response } from "express"; 
+import { NextFunction, Request, Response } from "express";
 import { verify } from "jsonwebtoken";
-import { SECRET } from "../global"; 
+import { SECRET } from "../global";
 import { Interface } from "readline";
 import { decode } from "punycode";
 
@@ -11,11 +11,11 @@ interface JwtPayLoad {
     role: string;
 }
 
-export const verifyToken = (req:Request, res:Response, next: NextFunction) => {
+export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
-        return res.status(400).json({message: 'Access Denied. No token provided '});
+        return res.status(400).json({ message: 'Access Denied. No token provided ' });
     }
     try {
         const secretKey = SECRET || ""
@@ -24,7 +24,7 @@ export const verifyToken = (req:Request, res:Response, next: NextFunction) => {
         next();
     }
     catch (error) {
-        return res.status(401).json({message: 'Invalid token.'})
+        return res.status(401).json({ message: 'Invalid token.' })
     }
 };
 
@@ -33,15 +33,14 @@ export const verifyRole = (allowedRoles: string[]) => {
         const user = req.body.user;
 
         if (!user) {
-            return res.status(403).json({ message: 'No user information available.' });
+            return res.status(401).json({ message: 'No User Information' });
         }
 
-        if (!allowedRoles.includes(user.Role)) {
+        if (!allowedRoles.includes(user.role)) {
             return res.status(403)
-            .json({ message: `Access denied.
-                Requires one of the following roles: ${allowedRoles.join(', ')}` });
+                .json({ message: `Access Denied. Requires one od the following roles: ${allowedRoles.join(',')}` });
         }
 
-        next()
+        next();
     }
 }

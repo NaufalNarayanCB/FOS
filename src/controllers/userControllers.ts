@@ -32,12 +32,22 @@ export const getAllUser = async (request: Request, response: Response) => {
 
 export const createUser = async (request: Request, response: Response) => {
     try {
-        const { name, email, password, Role } = request.body
+        const { name, email, password, role } = request.body
         const uuid = uuidv4()
 
         const newUser = await prisma.user.create({ 
-            data: { uuid, name, email, password: md5(password), Role}
+            data: { uuid, name, email, password: md5(password), role}
         })
+
+        let filename = newUser.profile_picture;
+        if (request.file) {
+            filename = request.file.filename;
+
+            const oldFilePath =`${BASE_URL}/../public/profil_picture/${newUser.profile_picture}`;
+            const fileExists = fs.existsSync(oldFilePath);
+            if (fileExists && newUser.profile_picture !== "") fs.unlinkSync(oldFilePath);
+        }
+
         return response.json({
             Status: true,
             data: newUser,
@@ -56,19 +66,29 @@ export const createUser = async (request: Request, response: Response) => {
 export const updateUser = async (request: Request,  response: Response) => {
     try {
         const { id } = request.params
-        const { name,  email, password, Role } = request.body
+        const { name,  email, password, role } = request.body
 
         const findUser = await prisma.user.findFirst({ where: { id: Number(id) } })
         if  (!findUser) return response
         .status(200)
         .json({ status: false, message: "User is not found" })
+
+        let filename = findUser.profile_picture;
+        if (request.file) {
+            filename = request.file.filename;
+
+            const oldFilePath =`${BASE_URL}/../public/profil_picture/${findUser.profile_picture}`;
+            const fileExists = fs.existsSync(oldFilePath);
+            if (fileExists && findUser.profile_picture !== "") fs.unlinkSync(oldFilePath);
+        }
         
         const  updateUser = await prisma.user.update({
             data: {
                 name: name ||  findUser.name,
                 email: email || findUser.email,
                 password: md5(password) || findUser.password,
-                Role: Role ||  findUser.Role
+                role: role ||  findUser.role,
+                profile_picture: filename
             },
             where: { id: Number(id) }
         }) 
@@ -163,19 +183,19 @@ export const authentication = async (request: Request, response: Response) => {
             id: findUser.id,
             email: findUser.email,
             name: findUser.name,
-            Role: findUser.Role,
+            role: findUser.role,
         };
 
         let payload = JSON.stringify(data);
         let token = sign(payload, SECRET || "token")
         
         return response.status(200)
-        .json({ status: true, logged: true, message: `Login Succes`, token});
+        .json({ status: true, logged: true, message: `Login Succes`, token, data:data});
     } catch (error) {
         return response
         .json({
             status: false,
-            message: `There is an error. $(error)`
+            message: `There is an error. ${error}`
         })
         .status(400)
     }

@@ -32,8 +32,11 @@ export const createMenu = async (request: Request, response: Response) => {
         const { name, price, category, description } = request.body
         const uuid = uuidv4()
 
+        let filename = ""
+        if (request.file) filename = request.file.filename
+
         const newMenu = await prisma.menu.create({ //await menunngu lalu dijalankan
-            data: { uuid, name, price: Number(price), category, description }
+            data: { uuid, name, price: Number(price), category, description, picture : filename }
         })
         return response.json({
             Status: true,
@@ -60,12 +63,21 @@ export const updateMenu = async (request: Request,response:Response) => {
         .status(200)
         .json({ status: false, message: `Menu is not found` })
 
+        let filename = findMenu.picture
+        if (request.file) {
+            filename = request.file.filename
+            let path = `${BASE_URL}/../public/menu_picture/${findMenu.picture}`
+            let exists = fs.existsSync(path)
+            if(exists && findMenu.picture !== ``) fs.unlinkSync(path)
+        }
+
         const updateMenu = await prisma.menu.update({
             data: {
                 name: name || findMenu.name,
                 price: price ? Number(price) : findMenu.price, //ternary
                 category: category || findMenu.category,
-                description: description || findMenu.description
+                description: description || findMenu.description,
+                picture : filename
             },
             where: { id :Number(id) }
         })
@@ -85,41 +97,6 @@ export const updateMenu = async (request: Request,response:Response) => {
     }
 }
 
-export const changePicture = async ( request: Request, response: Response) => {
-    try{
-        const { id } = request.params
-
-        const findMenu = await prisma.menu.findFirst({ where: { id: Number(id) } })
-        if (!findMenu) return response
-        .status(200)
-        .json({ status: false, message: `Menu is not found` })
-
-        let filename = findMenu.picture
-        if (request.file) {
-            filename = request.file.filename
-            let path = `${BASE_URL}/../public/menu_picture/${findMenu.picture}`
-            let exists = fs.existsSync(path)
-            if(exists && findMenu.picture !== ``) fs.unlinkSync(path)
-        }
-
-        const updatePicture = await prisma.menu.update({
-            data: {picture: filename},
-            where: {id: Number(id)}
-        })
-
-        return response.json({
-            status: true,
-            data: updatePicture,
-            message: `Picture has changed`
-        }).status(200)
-    } catch (error) {
-        return response.json({
-            status: false,
-            message: `There is an error. ${error}`
-        }).status(400)
-    }
-}
-
 export const deleteMenu = async (request: Request, response: Response) => {
     try {
         const {id} = request.params
@@ -128,7 +105,11 @@ export const deleteMenu = async (request: Request, response: Response) => {
         .status(200)
         .json({status: false, message: 'Ra Nemu Sam'})
 
-        const deletedMenu = await prisma.menu.delete({
+        let path = `${BASE_URL}/../public/menu_picture/$(findMenu.picture)`
+            let exists = fs.existsSync(path)
+            if (exists && findMenu.picture !== ``) fs.unlinkSync(path)
+
+        const deleteMenu = await prisma.menu.delete({
             where: {id: Number(id)}
         })
         return response.json({
